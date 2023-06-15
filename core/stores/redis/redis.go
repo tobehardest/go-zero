@@ -2830,11 +2830,11 @@ func (s *Redis) XaddCtx(ctx context.Context, stream string, noMkStream bool, max
 
 // Xdel is the implementation of redis xadd command.
 func (s *Redis) Xdel(stream string, ids ...string) (int64, error) {
-	return s.Xdelctx(context.Background(), stream, ids...)
+	return s.XdelCtx(context.Background(), stream, ids...)
 }
 
-// Xdelctx is the implementation of redis xadd command.
-func (s *Redis) Xdelctx(ctx context.Context, stream string, ids ...string) (val int64, err error) {
+// XdelCtx is the implementation of redis xadd command.
+func (s *Redis) XdelCtx(ctx context.Context, stream string, ids ...string) (val int64, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
 		if err != nil {
@@ -2842,6 +2842,26 @@ func (s *Redis) Xdelctx(ctx context.Context, stream string, ids ...string) (val 
 		}
 
 		val, err = conn.XDel(ctx, stream, ids...).Result()
+		return err
+	}, acceptable)
+
+	return
+}
+
+// Xlen is the implementation of redis xadd command.
+func (s *Redis) Xlen(stream string) (int64, error) {
+	return s.XdelCtx(context.Background(), stream)
+}
+
+// XlenCtx is the implementation of redis xadd command.
+func (s *Redis) XlenCtx(ctx context.Context, stream string) (val int64, err error) {
+	err = s.brk.DoWithAcceptable(func() error {
+		conn, err := getRedis(s)
+		if err != nil {
+			return err
+		}
+
+		val, err = conn.XDel(ctx, stream).Result()
 		return err
 	}, acceptable)
 
