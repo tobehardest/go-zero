@@ -2797,6 +2797,37 @@ func (s *Redis) ZunionstoreCtx(ctx context.Context, dest string, store *ZStore) 
 	return
 }
 
+// Xadd is the implementation of redis xadd command.
+func (s *Redis) Xadd(stream string, noMkStream bool, maxLen int64, minID string, approx bool,
+	limit int64, id string, values ...any) (string, error) {
+	return s.XaddCtx(context.Background(), stream, noMkStream, maxLen, minID, approx, limit, id, values)
+}
+
+// XaddCtx is the implementation of redis xadd command.
+func (s *Redis) XaddCtx(ctx context.Context, stream string, noMkStream bool, maxLen int64,
+	minID string, approx bool, limit int64, id string, values ...any) (val string, err error) {
+	err = s.brk.DoWithAcceptable(func() error {
+		conn, err := getRedis(s)
+		if err != nil {
+			return err
+		}
+
+		val, err = conn.XAdd(ctx, &red.XAddArgs{
+			Stream:     stream,
+			NoMkStream: noMkStream,
+			MaxLen:     maxLen,
+			MinID:      minID,
+			Approx:     approx,
+			Limit:      limit,
+			ID:         id,
+			Values:     values,
+		}).Result()
+		return err
+	}, acceptable)
+
+	return
+}
+
 func (s *Redis) checkConnection(pingTimeout time.Duration) error {
 	conn, err := getRedis(s)
 	if err != nil {
