@@ -2828,6 +2828,26 @@ func (s *Redis) XaddCtx(ctx context.Context, stream string, noMkStream bool, max
 	return
 }
 
+// Xdel is the implementation of redis xadd command.
+func (s *Redis) Xdel(stream string, ids ...string) (int64, error) {
+	return s.Xdelctx(context.Background(), stream, ids...)
+}
+
+// Xdelctx is the implementation of redis xadd command.
+func (s *Redis) Xdelctx(ctx context.Context, stream string, ids ...string) (val int64, err error) {
+	err = s.brk.DoWithAcceptable(func() error {
+		conn, err := getRedis(s)
+		if err != nil {
+			return err
+		}
+
+		val, err = conn.XDel(ctx, stream, ids...).Result()
+		return err
+	}, acceptable)
+
+	return
+}
+
 func (s *Redis) checkConnection(pingTimeout time.Duration) error {
 	conn, err := getRedis(s)
 	if err != nil {
